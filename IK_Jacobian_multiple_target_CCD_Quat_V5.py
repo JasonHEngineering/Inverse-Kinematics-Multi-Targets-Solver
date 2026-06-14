@@ -56,16 +56,20 @@ import time
 from datetime import datetime
 
 # file_path = 'line_target_2.csv'
-file_path = 'o_target_2.csv'
+# file_path = 'o_target_2.csv'
+file_path = 'point_target_1.csv'
 # file_path = '100mm_half_circle_coordinates_V2.csv'
 
-pose_method = "SLERP" # "SLERP" or "first_pose_locked_till_end"
+pose_method = "user_defined_SLERP" # "auto_CCD_SLERP" or "first_pose_locked_till_end"
 IK_CCD_angular_method = "angular_RMSE_closest_to_each_other" #  "angular_RMSE_closest_to_each_other" or "angular_RMSE_closest_to_zero"
+
+user_defined_start_orientation = np.array([0.8683155204502774, 0.10550110981789164, 0.4300488665272692, 0.22350759533172027])
+user_defined_end_orientation = np.array([0.812345723950406, -0.265597749225844, 0.48870371558461173, -0.175273896400608])
 
 displacement_err = 0.3 # acceptable error for IK in mm, was 0.5
 # experimental: open up orientation error in deg and let quaternion take its course
 orientation_err = 360 # acceptable error for orientation in deg, was 45 deg
-orientation_err_quat = 0.1 # acceptable error for orientation in quaternion, was 0.15
+orientation_err_quat = 0.05 # acceptable error for orientation in quaternion, was 0.15
 
 angular_RMSE =  math.inf
 IK_CCD_tries = 10
@@ -128,6 +132,12 @@ current_orientation_quat_to_euler_list = []
 
 
 index_of_angles = [2, 8, 11, 18, 26, 30] #hinge for project Hayley v4
+
+#form [i, theta, alpha, delta, rho]
+
+# i == linkage number
+#j == 
+
 # data for project hayley V4 - V2 links
 local_linkage_data = [
     [0,0,0,0,0], #0
@@ -157,11 +167,13 @@ local_linkage_data = [
     [5,-90,0,0,0],     #24 - Z left, X front
     [5,0,0,-47,0],    #25
     [5,0,0,0,0], #theta_5 - Axis5, down with positive theta #25
-    [6,0,0,0,93],    #27
+    # [6,0,0,0,93],    #27
+    [6,0,0,0,130],    #27
     [6,-90,0,0,0],     #28 - Z left, X up
     [6,0,-90,0,0],     #29 - Z front, X up    
     [6,0,0,0,0], #theta_6 - Axis6, anti-clockwise with positive theta #30
-    [7,0,0,17.5,0], # dummy 17.5 mm extension #31
+    # [7,0,0,17.5,0], # dummy 17.5 mm extension #31
+    [7,0,0,0,12], #31
     [7,0,90,0,0], #32 - Z left, X up
     [7,90,0,0,0], #33 - Z left, X front
     [7,0,90,0,0], #34 - Z up, X front    
@@ -952,10 +964,10 @@ if __name__ == '__main__':
         desired_orientation_start = rotation_matrix_to_euler(P[-1][:3, :3]) # target orientation in euler
         start_quat_orientation = matrix_to_quaternion(P[-1][:3, :3]) # target orientation in quat, of the first solved target
         
-        if (pose_method == "first_pose_locked_till_end"): # or "SLERP"        
+        if (pose_method == "first_pose_locked_till_end"): # or "auto_CCD_SLERP"        
             end_quat_orientation = start_quat_orientation
     
-        elif (pose_method == "SLERP"):
+        elif (pose_method == "auto_CCD_SLERP"):
             for l, index in enumerate(index_of_angles):
                 list_of_thetas[index] = last_target_thetas[l]
                 
@@ -963,6 +975,9 @@ if __name__ == '__main__':
             desired_orientation_end = rotation_matrix_to_euler(P[-1][:3, :3]) # target orientation in euler  
             end_quat_orientation = matrix_to_quaternion(P[-1][:3, :3]) # target orientation in quat, of the first solved target
     
+        elif (pose_method == "user_defined_SLERP"):
+            start_quat_orientation = user_defined_start_orientation
+            end_quat_orientation = user_defined_end_orientation
             
         for local_k in range(len(full_target_list)):
     
