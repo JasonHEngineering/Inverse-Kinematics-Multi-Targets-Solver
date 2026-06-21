@@ -60,8 +60,8 @@ from datetime import datetime
 file_path = 'point_target_1.csv'
 # file_path = '100mm_half_circle_coordinates_V2.csv'
 
-pose_method = "user_defined_SLERP" # "auto_CCD_SLERP" or "first_pose_locked_till_end"
-IK_CCD_angular_method = "angular_RMSE_closest_to_each_other" #  "angular_RMSE_closest_to_each_other" or "angular_RMSE_closest_to_zero"
+pose_method = "user_defined_SLERP" # "auto_CCD_SLERP" orth "first_pose_locked_till_end" or "user_defined_SLERP"
+IK_CCD_angular_method = "angular_RMSE_closest_to_zero" #  "angular_RMSE_closest_to_each_other" or "angular_RMSE_closest_to_zero"
 
 user_defined_start_orientation = np.array([0.8683155204502774, 0.10550110981789164, 0.4300488665272692, 0.22350759533172027])
 user_defined_end_orientation = np.array([0.812345723950406, -0.265597749225844, 0.48870371558461173, -0.175273896400608])
@@ -69,7 +69,7 @@ user_defined_end_orientation = np.array([0.812345723950406, -0.265597749225844, 
 displacement_err = 0.3 # acceptable error for IK in mm, was 0.5
 # experimental: open up orientation error in deg and let quaternion take its course
 orientation_err = 360 # acceptable error for orientation in deg, was 45 deg
-orientation_err_quat = 0.05 # acceptable error for orientation in quaternion, was 0.15
+orientation_err_quat = 0.005 # acceptable error for orientation in quaternion, was 0.15
 
 angular_RMSE =  math.inf
 IK_CCD_tries = 10
@@ -439,6 +439,8 @@ def Inverse_Kinematics_Jacobian_Quat(count):
         error_orientation_quat = quaternion_difference(current_orientation_quat, target_quat_orientation)
         error_orientation_quat_list.append([loop, error_orientation_quat[0], error_orientation_quat[1], error_orientation_quat[2], error_orientation_quat[3]])
         error_of_rotation = error_orientation_quat[1:] #get only the imaginary parts
+        
+        abs_error_of_rotation = [abs(x) for x in error_of_rotation]
 
         # record the angles of the best minimal error so far; yes the error can increase in further iterations
         if err_end_to_target < minimum_error:
@@ -450,7 +452,9 @@ def Inverse_Kinematics_Jacobian_Quat(count):
         # print((np.array(error_of_rotation) < orientation_err_quat))
         # print((np.array(error_of_rotation) < orientation_err_quat).all())
 
-        if (err_end_to_target < displacement_err) and (np.array(error_of_rotation) < orientation_err_quat).all():
+        if (err_end_to_target < displacement_err) and (np.array(abs_error_of_rotation) < orientation_err_quat).all():
+            print("error_of_rotation: ")
+            print(error_of_rotation)
             solved = True
             break
         else:
