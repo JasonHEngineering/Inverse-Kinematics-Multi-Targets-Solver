@@ -1,5 +1,9 @@
 ## Inverse-Kinematics-Multi-Targets-Solver
 
+
+https://www.youtube.com/watch?v=rPJJ7FBi4iI
+
+
 ### IK_Jacobian_multiple_target_CCD_Quat_V5.py
 
 This is a python script that process a series of 3d targets (x, y, x) in a .csv file, and then proceed to solve for the joint angles base on the actual kinematics of my robotic arm.
